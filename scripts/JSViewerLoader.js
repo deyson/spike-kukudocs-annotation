@@ -1,26 +1,26 @@
 
-$(document).ready(function(){
+$(document).ready(function () {
     var $body = $('body');
-    var $dragDropArea =  $("#drag-drop-area");
-    var $uploadBtn =  $("#upload-btn");
-    var $files =  $("#files");
-    var $loading =  $("#parser-loading");
-    var $modal =  $("#modal");
-    var $modalCloseBtn =  $("#modal-close-btn");
-    var $docxjsWrapper =$("#docxjs-wrapper");
+    var $dragDropArea = $("#drag-drop-area");
+    var $uploadBtn = $("#upload-btn");
+    var $files = $("#files");
+    var $loading = $("#parser-loading");
+    var $modal = $("#modal");
+    var $modalCloseBtn = $("#modal-close-btn");
+    var $docxjsWrapper = $("#docxjs-wrapper");
 
     var instance = null;
 
-    var stopEvent= function(e) {
-        if(e.preventDefault) e.preventDefault();
-        if(e.stopPropagation) e.stopPropagation();
+    var stopEvent = function (e) {
+        if (e.preventDefault) e.preventDefault();
+        if (e.stopPropagation) e.stopPropagation();
 
         e.returnValue = false;
         e.cancelBubble = true;
         e.stopped = true;
     };
 
-    var getInstanceOfFileType = function(file) {
+    var getInstanceOfFileType = function (file) {
         var fileExtension = null;
 
         if (file) {
@@ -31,7 +31,7 @@ $(document).ready(function(){
         return fileExtension;
     };
 
-    var documentParser = function(file) {
+    var documentParser = function (file) {
         var fileType = getInstanceOfFileType(file);
 
         if (fileType) {
@@ -59,11 +59,11 @@ $(document).ready(function(){
                         afterRender(file, fileType);
                         $loading.hide();
                     }, function (e) {
-                        if(!$body.hasClass('is-docxjs-rendered')){
+                        if (!$body.hasClass('is-docxjs-rendered')) {
                             $docxjsWrapper.hide();
                         }
 
-                        if(e.isError && e.msg){
+                        if (e.isError && e.msg) {
                             alert(e.msg);
                         }
 
@@ -76,16 +76,16 @@ $(document).ready(function(){
 
     var afterRender = function (file, fileType) {
         var element = $docxjsWrapper[0];
-        $(element).css('height','calc(100% - 65px)');
+        $(element).css('height', 'calc(100% - 65px)');
 
         var loadingNode = document.createElement("div");
         loadingNode.setAttribute("class", 'docx-loading');
         element.parentNode.insertBefore(loadingNode, element);
         $modal.show();
 
-        var endCallBackFn = function(result){
+        var endCallBackFn = function (result) {
             if (result.isError) {
-                if(!$body.hasClass('is-docxjs-rendered')){
+                if (!$body.hasClass('is-docxjs-rendered')) {
                     $docxjsWrapper.hide();
                     $body.removeClass('is-docxjs-rendered');
                     element.innerHTML = "";
@@ -95,10 +95,14 @@ $(document).ready(function(){
                 }
             } else {
                 $body.addClass('is-docxjs-rendered');
+                   
+              //  $(".docx-container").annotator();                
+              //  $("#cell-container").annotator();
                 console.log("Success Render");
             }
 
             loadingNode.parentNode.removeChild(loadingNode);
+            checkContainer();
         };
 
         if (fileType === 'docx') {
@@ -111,52 +115,101 @@ $(document).ready(function(){
             window.slideAfterRender(element, endCallBackFn, 0);
 
         } else if (fileType === 'pdf') {
-            window.pdfAfterRender(element, endCallBackFn, 0);
+            window.pdfAfterRender(element, endCallBackFn, 0);             
         }
     };
 
-    $uploadBtn.on("click", function(e){
+    $uploadBtn.on("click", function (e) {
         stopEvent(e);
         $files.val('');
         $files.trigger("click");
     });
 
-    $dragDropArea.on("click", function(e){
+    $dragDropArea.on("click", function (e) {
         stopEvent(e);
         $files.val('');
         $files.trigger("click");
-    }).on("dragover", function(e) {
+    }).on("dragover", function (e) {
         stopEvent(e);
         $dragDropArea.addClass("drag-on");
-    }).on("dragenter", function(e) {
+    }).on("dragenter", function (e) {
         stopEvent(e);
-    }).on("dragleave", function(e) {
-        stopEvent(e);
-        $dragDropArea.removeClass("drag-on");
-    }).on("drop", function(e){
+    }).on("dragleave", function (e) {
         stopEvent(e);
         $dragDropArea.removeClass("drag-on");
-        if(e.originalEvent.dataTransfer){
-            if(e.originalEvent.dataTransfer.files.length) {
+    }).on("drop", function (e) {
+        stopEvent(e);
+        $dragDropArea.removeClass("drag-on");
+        if (e.originalEvent.dataTransfer) {
+            if (e.originalEvent.dataTransfer.files.length) {
                 var files = e.originalEvent.dataTransfer.files;
                 documentParser(files[0]);
             }
         }
     });
 
-    $files.on('change', function(e){
+    $files.on('change', function (e) {
         stopEvent(e);
 
         var file = e.target.files[0];
         documentParser(file);
     });
 
-    $modalCloseBtn.on("click", function(e){
+    $modalCloseBtn.on("click", function (e) {
         $docxjsWrapper.empty();
         $modal.hide();
 
-        instance.destroy(function(){
+        instance.destroy(function () {
             instance = null;
         });
     });
+
+    function checkContainer() {
+        if ($('.docxjs-content').length > 0) {
+            setCustomProperties();
+        } else {
+            window.setTimeout(checkContainer, 100);
+        }
+    }
+
+    function setCustomProperties() {   
+ 
+         /*   $('.docxjs-content canvas').each(function( index ) {
+            var pageId = $(this).parent().parent().parent().parent().parent().attr("data-page");
+            $(this).attr('id', 'canvas_' + pageId);           
+            $(this).parent().css("position","relative");         
+          });
+
+          $('.docxjs-content svg').each(function( index ) {
+            var pageId = $(this).parent().parent().parent().parent().parent().attr("data-page");
+            $(this).attr('id', 'svg_' + pageId);           
+            $(this).parent().css("position","relative");         
+          });
+*/
+          $('.docxjs-inner').each(function( index ) {
+            var pageId = $(this).parent().parent().parent().attr("data-page");
+            $(this).attr('id', 'div_' + pageId);   
+            console.log('div_' + pageId);        
+            $(this).parent().css("position","relative");         
+          });
+
+        var app = new annotator.App();
+        app.include(annotator.ui.main, {
+            element: document.querySelector('.docx-container'),
+        })
+          /*  .include(annotatorImageSelect, {
+                element: $('.docxjs-content canvas'),
+            })
+            .include(annotatorImageSelect, {
+                element: $('.drawing svg'),
+            })
+            .include(annotatorImageSelect, {
+                element: $('.docxjs-drawing svg'),
+            })*/
+            .include(annotatorImageSelect, {
+                element: $('.docxjs-inner'),
+            });
+            
+        app.start();
+    };
 });
